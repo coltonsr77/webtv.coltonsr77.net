@@ -45,7 +45,7 @@ if(window.self!==window.top){//If the current window isn't the top one...
 		}
 		window.linkHandler=function(url){location.href=url;}//Useful for buttons or other clickable things that don't support href
 
-		//Page name updater - monitors page title and reports any changes back to WTV-HD
+		//Page name updater - monitors page title and reports any changes back to WebTV-HD
 		const observer=new MutationObserver(updatePageName);//Set up a new observer to, well, observe page name updates
 		function updatePageName(){parent.postMessage({type:'title',title:document.title},'*');}//Send a message to the parent iframe with the current document title
 		function trackName(){
@@ -68,7 +68,7 @@ if(window.self!==window.top){//If the current window isn't the top one...
 			if(displayOptions.includes('noScroll')){console.debug('Scrolling disabled - noScroll is set in the display tag.');document.querySelector('html').style.overflow='hidden';document.body.style.overflow='hidden';}
 			if(displayOptions.includes('noStatus')){parent.postMessage({type:'display',attribute:'noStatus'},'*');}
 			if(displayOptions.includes('noMusic')){parent.postMessage({type:'display',attribute:'noMusic'},'*');}
-		}else{parent.postMessage({type:'display',attribute:'none'},'*');}//If there isn't any display tag, just post none so WTV-HD knows that the page doesn't have any special properties
+		}else{parent.postMessage({type:'display',attribute:'none'},'*');}//If there isn't any display tag, just post none so WebTV-HD knows that the page doesn't have any special properties
 
 		/* <bgsound> tag reimplementation
 			HOW TO USE:
@@ -80,7 +80,7 @@ if(window.self!==window.top){//If the current window isn't the top one...
 		if(bgsound){//If the bgsound tag exists...
 			const bgsoundSrc=bgsound.getAttribute('content');//Get its content...
 			if(bgsoundSrc){parent.postMessage({type:'bgsound',source:bgsoundSrc},'*');}//...and post a message if a source is found
-		}else{parent.postMessage({type:'bgsound',source:'none'},'*');}//If there isn't any display tag, just post none so WTV-HD knows that the page doesn't have any bgmusic
+		}else{parent.postMessage({type:'bgsound',source:'none'},'*');}//If there isn't any display tag, just post none so WebTV-HD knows that the page doesn't have any bgmusic
 
 		//Message handlers
 		function handleMessage(e){//Listen for messages from WebTV HD
@@ -92,8 +92,8 @@ if(window.self!==window.top){//If the current window isn't the top one...
 				case 'doAlertAction':eval(tempAction);tempAction='';break;//If the message is "doAlertAction", execute the code set earlier by an alert and clear the action
 				case 'find'://If the message is "find", and we have a search term...
 					const term=find(e.data.term);//...look for the term on the page and highlight it if we found it
-					if(term){parent.postMessage({type:'matchFound'},'*');}//If the term was found, tell WTV-HD that we found the term (which closes the find panel)
-					else{parent.postMessage({type:'noMatchFound'},'*');}//Or, if we didn't find it, tell WTV-HD just that (which brings up an error message)
+					if(term){parent.postMessage({type:'matchFound'},'*');}//If the term was found, tell WebTV-HD that we found the term (which closes the find panel)
+					else{parent.postMessage({type:'noMatchFound'},'*');}//Or, if we didn't find it, tell WebTV-HD just that (which brings up an error message)
 				break;
 				case 'print':print();break;//If the message is "print", prompt the user to print the page
 				case 'reload':location.reload();break;//If the message is "reload" or "forceReload", reload the page, clearing the cache if necessary
@@ -125,7 +125,7 @@ if(window.self!==window.top){//If the current window isn't the top one...
 		}
 		addEventListener('message',handleMessage);
 
-		//Loading indicator code - when the page hides via navigation, tell WTV so it can show the loading indicator and hide the audioscope (if necessary)
+		//Loading indicator code - when the page hides via navigation, tell WebTV so it can show the loading indicator and hide the audioscope (if necessary)
 		addEventListener('pagehide',function(){
 			parent.postMessage({type:'loading'},'*');
 			parent.postMessage({type:'hideAudioscope'},'*');
