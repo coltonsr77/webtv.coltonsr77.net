@@ -1,10 +1,10 @@
 'use strict';
 /*
-	WebTV HD compatibility script - See https://github.com/coltonsr77/WebTV-HD-Updated for details.
+	WebTV compatibility script - See https://github.com/coltonsr77/WebTV-HD-Updated for details.
 
 	Add this script to every page on your site to make it more compatible with WebTV HD (This script somehow works with WebTV).
-	/!\ Place the script at the very end of the body so everything can load in beforehand, otherwise you'll probably get errors - the script relies on the page being fully loaded in beforehand. /!\
-	This script will send basic metadata (page title and address) to WTV-HD and enable exclusive functionality once verified.
+	/!\ Place the script at the very end of the html page so everything can load in beforehand, otherwise you'll probably get errors - the script relies on the page being fully loaded in beforehand. /!\
+	This script will send basic metadata (page title and address) to WTV and enable exclusive functionality once verified.
 
 	Note that this script redefines alert() in a way that doesn't block script execution while the message is shown, so keep that in mind. See line 23.
 	It also remaps the "Del" key (not backspace) to open the options bar. See line 129.
