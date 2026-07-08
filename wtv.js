@@ -1,13 +1,14 @@
 'use strict';
 /*
-	WebTV compatibility script - See https://github.com/coltonsr77/WebTV-Script for details.
+	WebTV compatibility script - See https://github.com/coltonsr77/coltonsr77.net for details.
+    OG Script at https://github.com/SKCro/WebTV-HD
 
 	Add this script to every page on your site to make it more compatible with WebTV.
 	/!\ Place the script at the very end of the html page so everything can load in beforehand, otherwise you'll probably get errors - the script relies on the page being fully loaded in beforehand. /!\
 	This script will send basic metadata (page title and address) to WebTV and enable exclusive functionality once verified.
 
 	Note that this script redefines alert() in a way that doesn't block script execution while the message is shown, so keep that in mind. See line 23.
-   Credits: SKCro: Made the OG Script coltonsr77: Made important changes
+   Credits: SKCro: Made the OG Script | coltonsr77: Made important changes
 	Yes, I know, the code is a mess. I'm sorry.
 */
 
@@ -52,6 +53,8 @@ if(window.self!==window.top){//If the current window isn't the top one...
 		function addClass(el,c){ if(!el) return; try{ if(el.classList && el.classList.add){ el.classList.add(c); return; } }catch(e){} if(!hasClass(el,c)) el.className = (el.className+' '+c).trim(); }
 		function removeClass(el,c){ if(!el) return; try{ if(el.classList && el.classList.remove){ el.classList.remove(c); return; } }catch(e){} if(hasClass(el,c)) el.className = (' '+el.className+' ').replace(' '+c+' ',' ').trim(); }
 		function safeFocus(el,opts){ try{ if(!el) return; if(opts && typeof opts === 'object'){ try{ el.focus(opts); return; }catch(e){} } try{ el.focus(); }catch(e){} }catch(e){} }
+		function selectAll(selector, root){ root = root || document; if(root.querySelectorAll) return root.querySelectorAll(selector); var results=[]; var selectors = selector.split(','); for(var si=0; si<selectors.length; si++){ var sel = selectors[si].trim(); if(!sel) continue; if(sel === '*'){ var nodes = root.getElementsByTagName('*'); for(var i=0;i<nodes.length;i++) results.push(nodes[i]); continue; } if(sel.charAt(0) === '.'){ var className = sel.slice(1); var nodes = root.getElementsByTagName('*'); for(var i=0;i<nodes.length;i++){ var node = nodes[i]; if(node.className && (' '+node.className+' ').indexOf(' '+className+' ') > -1){ results.push(node); } } continue; } if(sel.indexOf('[onclick]') !== -1){ var nodes = root.getElementsByTagName('*'); for(var i=0;i<nodes.length;i++){ var node = nodes[i]; if(node.getAttribute && node.getAttribute('onclick') !== null){ results.push(node); } } continue; } if(sel.indexOf('[') !== -1){ var attrMatch = sel.match(/\[([^=\]]+)(?:=["']?([^"'\]]+)["']?)?\]/); if(attrMatch){ var name = attrMatch[1]; var value = attrMatch[2]; var nodes = root.getElementsByTagName('*'); for(var i=0;i<nodes.length;i++){ var node = nodes[i]; if(node.getAttribute){ var attr = node.getAttribute(name); if(attr !== null){ if(value === undefined || attr === value){ results.push(node); } } } } continue; } } var tagName = sel.toUpperCase(); var nodes = root.getElementsByTagName(tagName); for(var i=0;i<nodes.length;i++){ results.push(nodes[i]); } } return results; }
+		function selectOne(selector, root){ root = root || document; if(root.querySelector) return root.querySelector(selector); var all = selectAll(selector, root); return (all && all.length) ? all[0] : null; }
 		//Alert-related functionality
 		// Preserve original alert in case other scripts depend on it
 		window.originalAlert = window.alert;
@@ -83,7 +86,7 @@ if(window.self!==window.top){//If the current window isn't the top one...
 			try{
 				if(window.MutationObserver){
 					const observer=new MutationObserver(updatePageName);//Set up a new observer to, well, observe page name updates
-					var titleEl = document.querySelector('title');
+					var titleEl = selectOne('title');
 					if(titleEl) observer.observe(titleEl,{subtree:true,characterData:true,childList:true});//Tell the observer to look for changes in the page name
 				}else{
 					// Legacy fallback: poll document.title
@@ -103,13 +106,13 @@ if(window.self!==window.top){//If the current window isn't the top one...
 			noMusic - disable the user's background music (use if your site has content that the background music might interfere with, like videos)
 			For example: <meta name=display content="noMusic noStatus">
 		*/
-		const displayTag=document.querySelector('meta[name="display"]');//Get the display tag from the document, if any
+		const displayTag=selectOne('meta[name="display"]');//Get the display tag from the document, if any
 		// store display options globally so message handlers can access them
 		window._wtv_displayOptions = [];
 		if(displayTag){//If the display tag exists...
 			const displayOptions=displayTag.getAttribute('content').split(' ');//Get its content and post messages if certain attributes are found
 			window._wtv_displayOptions = displayOptions;
-			if(displayOptions.includes('noScroll')){console.debug('Scrolling disabled - noScroll is set in the display tag.');document.querySelector('html').style.overflow='hidden';document.body.style.overflow='hidden';}
+			if(displayOptions.includes('noScroll')){console.debug('Scrolling disabled - noScroll is set in the display tag.');var htmlEl = selectOne('html'); if(htmlEl){ htmlEl.style.overflow='hidden'; } document.body.style.overflow='hidden';}
 			if(displayOptions.includes('noStatus')){parent.postMessage({type:'display',attribute:'noStatus'},'*');}
 			if(displayOptions.includes('noMusic')){parent.postMessage({type:'display',attribute:'noMusic'},'*');}
 		}else{parent.postMessage({type:'display',attribute:'none'},'*');}//If there isn't any display tag, just post none so WebTV knows that the page doesn't have any special properties
@@ -120,7 +123,7 @@ if(window.self!==window.top){//If the current window isn't the top one...
 			If the music shouldn't loop (it does by default), add ";" to the end of the URL.
 			For example: <meta name=bgsound content="https://example.com/bgsound.mp3">
 		*/
-		const bgsound=document.querySelector('meta[name="bgsound"]');//Get the bgsound tag from the document, if any
+		const bgsound=selectOne('meta[name="bgsound"]');//Get the bgsound tag from the document, if any
 		if(bgsound){//If the bgsound tag exists...
 			const bgsoundSrc=bgsound.getAttribute('content');//Get its content...
 			if(bgsoundSrc){parent.postMessage({type:'bgsound',source:bgsoundSrc},'*');}//...and post a message if a source is found
@@ -178,8 +181,8 @@ if(window.self!==window.top){//If the current window isn't the top one...
 					case 'reload':location.reload();break;//If the message is "reload" or "forceReload", reload the page, clearing the cache if necessary
 					case 'forceReload':location.reload(true);break;
 				case 'toggleSidebar'://If the message is "toggleSidebar"...
-					const sidebar=document.querySelector('.sidebar');//Locate the sidebar or navigation bar
-					const nav=document.querySelector('.side-nav');
+					const sidebar=selectOne('.sidebar');//Locate the sidebar or navigation bar
+					const nav=selectOne('.side-nav');
 					function show(e){//Show sidebar
 						playSound('panelUp');
 						e.classList.remove('hiding','hide');
@@ -212,7 +215,7 @@ if(window.self!==window.top){//If the current window isn't the top one...
 
 		//Scan for and attach the clickable attribute to all clickable elements - just anchors and stuff with an inline onClick handler for now
 		//To opt a tag out of being clickable, add the "noselect" class to it - it will still have the clickable class attached (and thus, will still play click sounds) but the selection box won't highlight it
-		var _nodes = document.querySelectorAll('a,[onclick]'); for(var _i=0;_i<_nodes.length;_i++){ addClass(_nodes[_i],'clickable'); }
+		var _nodes = selectAll('a,[onclick]'); for(var _i=0;_i<_nodes.length;_i++){ addClass(_nodes[_i],'clickable'); }
 
 		//Selection box
 		window.selectionBox=document.createElement('div');
@@ -281,7 +284,7 @@ if(window.self!==window.top){//If the current window isn't the top one...
 			);
 		}
 		function getInteractiveElements(){
-			const allElements=document.querySelectorAll('*');
+			const allElements=selectAll('*');
 			const interactiveElements=[];
 			for(let i=0;i<allElements.length;i++){if(checkIfInteractive(allElements[i])){interactiveElements.push(allElements[i]);}}
 			return interactiveElements;
@@ -341,11 +344,11 @@ if(window.self!==window.top){//If the current window isn't the top one...
 
 	//Sound effects - also adds tabindex stuff to clickable things to make them focusable
 	window.playSound=function(snd){parent.postMessage({type:'sound',soundType:snd},'*');}
-	const inputs=document.querySelectorAll('.input');
-	const submitInputs=document.querySelectorAll('.submit');
-	const clickableButtons=document.querySelectorAll('.clickable');
-	const inputNoSound=document.querySelectorAll('.inputNoSound');
-	const audioTags=document.querySelectorAll('audio');
+	const inputs=selectAll('.input');
+	const submitInputs=selectAll('.submit');
+	const clickableButtons=selectAll('.clickable');
+	const inputNoSound=selectAll('.inputNoSound');
+	const audioTags=selectAll('audio');
 	for(let audioTag of audioTags){
 		audioTag.addEventListener('play', function(){parent.postMessage({type:'showAudioscope'},'*');});
 		audioTag.addEventListener('pause',function(){parent.postMessage({type:'hideAudioscope'},'*');});
